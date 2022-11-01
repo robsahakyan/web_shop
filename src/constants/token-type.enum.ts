@@ -1,0 +1,6 @@
+export enum TokenTypeEnum {
+    VERIFY_ACCOUNT = 'VERIFY_ACCOUNT',
+    FORGOT_PASSWORD = 'FORGOT_PASSWORD',
+    AUTH = 'AUTH',
+    REFRESH = 'REFRESH',
+}

@@ -1,0 +1,23 @@
+# Idea fils
+.idea
+.history
+.vscode/
+dist/
+.husky/
+.vuepress/
+.github/
+
+# MacOs
+.DS_Store
+
+# Dependency directories
+node_modules/
+
+# Environment vars
+.env
+
+# Logs
+*.log
+
+# Uploads Files
+uploads/

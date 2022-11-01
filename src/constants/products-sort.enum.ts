@@ -1,0 +1,4 @@
+export enum ProductsSortEnum {
+  FREQUENTLY_SEARCHED = 'FREQUENTLY_SEARCHED',
+  PRODUCTS_NEWS = 'PRODUCTS_NEWS',
+}
