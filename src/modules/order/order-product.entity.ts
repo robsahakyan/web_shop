@@ -20,9 +20,12 @@ export class OrderProductEntity extends AbstractEntity<OrderProductDto> {
   @Column()
   quantity: number;
 
-  @ManyToOne(() => ProductEntity)
-  @JoinColumn({ name: 'product_id' })
+  @ManyToOne(() => ProductEntity, {
+    cascade: false,
+  })
+  @JoinColumn({ name: 'product_id'})
   product: ProductEntity;
+
 
   @ManyToOne(() => OrderEntity, (order) => order.products)
   @JoinColumn({ name: 'order_id' })

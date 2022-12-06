@@ -5,6 +5,7 @@ import type { UserDto } from '../common/modules/user/user.dto';
 import { PaymentService } from '../payment/payment.service';
 import { ProductRepository } from '../product/product.repository';
 import type { CreateOrderDto } from './dtoes/create-order.dto';
+import type { UpdateOrderStatusDto } from './dtoes/update-order-status.dto';
 import { OrderRepository } from './order.repository';
 
 @Injectable()
@@ -43,10 +44,34 @@ export class OrderService {
     return orders.map((order) => order.toDto());
   }
 
+  async getSummary(): Promise<Record<string, number>> {
+    const orders = await this.orderRepository.findAll();
+    const total: number = orders.reduce((sum, item) => sum + item.summary, 0);
+
+    return { total, count: orders.length };
+  }
+
   async findAllUserOrders(userId: string): Promise<OrderDto[]> {
     const orders = await this.orderRepository.findByUserId(userId);
 
     return orders.map((order) => order.toDto());
+  }
+
+  async findOneById(orderId: string): Promise<OrderDto> {
+    const order = await this.orderRepository.findById(orderId);
+
+    return order.toDto();
+  }
+
+  async updateOrderStatus(
+    orderId: string,
+    updateOrderStatusDto: UpdateOrderStatusDto,
+  ): Promise<OrderDto> {
+    await this.orderRepository.update(orderId, {
+      status: updateOrderStatusDto.orderStatus,
+    });
+
+    return (await this.orderRepository.findById(orderId)).toDto();
   }
 
   async findOneOrder(userId: string, orderId: string): Promise<OrderDto> {

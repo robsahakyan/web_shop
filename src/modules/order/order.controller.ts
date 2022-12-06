@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  Put,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -14,6 +15,7 @@ import { Auth, UUIDParam } from '../../decorators/http.decorators';
 import type { OrderDto } from '../common/modules/order/order.dto';
 import { UserDto } from '../common/modules/user/user.dto';
 import { CreateOrderDto } from './dtoes/create-order.dto';
+import { UpdateOrderStatusDto } from './dtoes/update-order-status.dto';
 import { OrderService } from './order.service';
 
 @Controller('orders')
@@ -34,6 +36,29 @@ export class OrderController {
   @Get()
   async getAll(): Promise<OrderDto[]> {
     return this.orderService.findAll();
+  }
+
+  @Auth(RoleEnum.ADMIN)
+  @Get('/summary')
+  async getSummary(): Promise<Record<string, number>> {
+    return this.orderService.getSummary();
+  }
+
+  @Auth(RoleEnum.ADMIN)
+  @Put('/update-order-status/:orderId')
+  async updateSingleOrder(
+    @Body() updateOrderStatusDto: UpdateOrderStatusDto,
+    @UUIDParam('orderId') orderId: string,
+  ): Promise<OrderDto> {
+    return this.orderService.updateOrderStatus(orderId, updateOrderStatusDto);
+  }
+
+  @Auth(RoleEnum.ADMIN)
+  @Get('/:orderId')
+  async getSingleOrder(
+    @UUIDParam('orderId') orderId: string,
+  ): Promise<OrderDto> {
+    return this.orderService.findOneById(orderId);
   }
 
   @Auth(RoleEnum.CUSTOMER, RoleEnum.ADMIN)

@@ -8,6 +8,7 @@ import {
   OneToOne,
 } from 'typeorm';
 
+import { OrderStatusEnum } from '../../constants/order-status.enum';
 import { PaymentMethodEnum } from '../../constants/payment-method.enum';
 import { AbstractEntity } from '../common/entities/abstract.entity';
 import { OrderDto } from '../common/modules/order/order.dto';
@@ -27,8 +28,12 @@ export class OrderEntity extends AbstractEntity<OrderDto> {
   @Column({ nullable: true })
   summary: number;
 
-  @Column({ nullable: true })
-  status: string;
+  @Column({
+    type: 'enum',
+    enum: OrderStatusEnum,
+    default: OrderStatusEnum.IN_PROGRESS,
+  })
+  status: OrderStatusEnum;
 
   @ManyToOne(() => UserEntity)
   @JoinColumn({ name: 'user_id' })

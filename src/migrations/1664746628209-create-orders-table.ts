@@ -18,7 +18,7 @@ export class CreateOrdersTable1664746628209 implements MigrationInterface {
                    "payment_id" character varying, 
                    "summary" integer, 
                    "status" character varying, 
-                   "receiver_fullname" character varying, 
+                   "receiver_full_name" character varying, 
                    "receiver_phone_number" character varying, 
                    "extra_information" character varying, 
                    "address_id" uuid, 

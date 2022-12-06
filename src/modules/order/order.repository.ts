@@ -6,7 +6,9 @@ import { OrderEntity } from './order.entity';
 @CustomRepository(OrderEntity)
 export class OrderRepository extends Repository<OrderEntity> {
   async findAll(): Promise<OrderEntity[] | null> {
-    const orders = this.createQueryBuilder('order').getMany();
+    const orders = this.createQueryBuilder('order')
+      .leftJoinAndSelect('order.user', 'user')
+      .getMany();
 
     return orders;
   }
@@ -33,6 +35,18 @@ export class OrderRepository extends Repository<OrderEntity> {
       .where('order.id = :orderId', { orderId })
       .andWhere('order.userId = :userId', { userId })
       .getOne();
+  }
+
+  async findById(id: string): Promise<OrderEntity | null> {
+    const user = this.createQueryBuilder('order')
+      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('order.products', 'orderProduct')
+      .leftJoinAndSelect('order.address', 'address')
+      .leftJoinAndSelect('orderProduct.product', 'product')
+      .where('order.id = :orderId', { orderId: id })
+      .getOne();
+
+    return user;
   }
 
   async findOneByPaymentId(paymentId: string): Promise<OrderEntity | null> {

@@ -5,6 +5,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Param,
   Post,
   Put,
   UploadedFile,
@@ -43,6 +44,12 @@ export class UserController {
   @Get()
   async getAllUsers(): Promise<UserDto[]> {
     return this.userService.getAll();
+  }
+
+  @Auth(RoleEnum.ADMIN)
+  @Get('getByemail/:email')
+  async getByEmail(@Param('email') email: string): Promise<UserDto> {
+    return this.userService.getByEmail(email);
   }
 
   @Auth(RoleEnum.ADMIN)

@@ -4,6 +4,7 @@ import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import { firstValueFrom } from 'rxjs';
 
 import { AddressStatusEnum } from '../../constants/address-status.enum';
+import { OrderStatusEnum } from '../../constants/order-status.enum';
 import { PaymentMethodEnum } from '../../constants/payment-method.enum';
 import type { ProductDto } from '../common/modules/product/product.dto';
 import type { UserDto } from '../common/modules/user/user.dto';
@@ -44,6 +45,7 @@ export class PaymentService {
         user,
         summary: Number(total),
         address: addressSaver,
+        status: OrderStatusEnum.IN_PROGRESS,
         receiverPhoneNumber: addressCredetentials.phoneNumber,
         receiverFullname: orderDto.receiverFullName || user.fullName,
         extraInformation: orderDto.extraInformation,
@@ -190,8 +192,8 @@ export class PaymentService {
         paymentMethod: PaymentMethodEnum.FOR_PAYPAL,
         status: getFinalResponse.data.status,
         receiverPhoneNumber: addressCredetentials.phoneNumber,
-        receiverFullname:
-          orderObject.orderDto.receiverFullname || orderObject.user.fullName,
+        receiverFullName:
+          orderObject.orderDto.receiverFullName || orderObject.user.fullName,
         extraInformation: orderObject.orderDto.extraInformation,
       });
       await orderObject.products.map(async (item: ProductDto & OrderItemDto) =>
@@ -258,7 +260,9 @@ export class PaymentService {
       );
       const order = await this.orderRepository.findOneByPaymentId(captureId);
 
-      await this.orderRepository.update(order.id, { status: 'REFUNDED' });
+      await this.orderRepository.update(order.id, {
+        status: OrderStatusEnum.REFUNDED,
+      });
 
       return postRefund.data;
     } catch (error) {

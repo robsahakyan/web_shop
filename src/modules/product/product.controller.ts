@@ -31,11 +31,11 @@ import { ProductDto } from '../common/modules/product/product.dto';
 import type { UserFavoriteDto } from '../common/modules/product/user-favorite.dto';
 import { UserDto } from '../common/modules/user/user.dto';
 import { CreateProductDto } from './dto/create-product.dto';
+import { FavoriteProductPageOptionsDto } from './dto/favorite-product-page-options.dto';
 import { ProductPageOptionDto } from './dto/product-page-option.dto';
 import { SearchProductsDto } from './dto/search-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductService } from './product.service';
-import { FavoriteProductPageOptionsDto } from './dto/favorite-product-page-options.dto';
 
 @Controller('products')
 @ApiTags('products')
@@ -104,7 +104,10 @@ export class ProductController {
     @AuthUser() user: UserDto,
     @Query() favoriteProductPageOptionDto: FavoriteProductPageOptionsDto,
   ) {
-    return this.productService.getAllFavorite(user.id, favoriteProductPageOptionDto);
+    return this.productService.getAllFavorite(
+      user.id,
+      favoriteProductPageOptionDto,
+    );
   }
 
   @Get(':id')
@@ -148,8 +151,6 @@ export class ProductController {
     return this.productService.remove(id);
   }
 
-
-
   @Post('favorite/:productId')
   @Auth(RoleEnum.CUSTOMER)
   addNewFavorite(
@@ -158,8 +159,6 @@ export class ProductController {
   ): Promise<UserFavoriteDto> {
     return this.productService.addFavorite(productId, user.id);
   }
-
-
 
   @Delete('favorite/:productId')
   @Auth(RoleEnum.CUSTOMER)

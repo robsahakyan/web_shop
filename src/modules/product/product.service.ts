@@ -1,31 +1,32 @@
-import { Injectable, UnprocessableEntityException } from "@nestjs/common";
-import { Cron, CronExpression } from "@nestjs/schedule";
-import fs1, { unlinkSync } from "fs";
-import fs from "fs/promises";
-import type { UpdateResult } from "typeorm";
-import { parseString } from "xml2js";
+/* eslint-disable sonarjs/no-ignored-return */
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import fs1, { unlinkSync } from 'fs';
+import fs from 'fs/promises';
+import type { UpdateResult } from 'typeorm';
+import { parseString } from 'xml2js';
 
-import { CategoryService } from "../category/category.service";
-import type { PageDto } from "../common/dtoes/page.dto";
-import type { ProductDto } from "../common/modules/product/product.dto";
-import type { UserFavoriteDto } from "../common/modules/product/user-favorite.dto";
-import { EventService } from "../event/event.service";
-import { TargetService } from "../target/target.service";
-import { UserService } from "../user/user.service";
-import type { CreateProductDto } from "./dto/create-product.dto";
-import type { ProductPageOptionDto } from "./dto/product-page-option.dto";
-import type { SearchProductsDto } from "./dto/search-products.dto";
-import type { UpdateProductDto } from "./dto/update-product.dto";
-import { ProductConflictException } from "./exception/product-conflict.exception";
-import { ProductNotFoundException } from "./exception/product-not-found.exception";
-import { ImageRepository } from "./image.repository";
-import { ProductEntity } from "./product.entity";
-import { ProductRepository } from "./product.repository";
-import { UserFavoriteRepository } from "./user-favorite.repository";
-import { FavoriteProductPageOptionsDto } from './dto/favorite-product-page-options.dto';
+import { CategoryService } from '../category/category.service';
+import type { PageDto } from '../common/dtoes/page.dto';
+import type { ProductDto } from '../common/modules/product/product.dto';
+import type { UserFavoriteDto } from '../common/modules/product/user-favorite.dto';
+import { EventService } from '../event/event.service';
+import { TargetService } from '../target/target.service';
+import { UserService } from '../user/user.service';
+import type { CreateProductDto } from './dto/create-product.dto';
+import type { FavoriteProductPageOptionsDto } from './dto/favorite-product-page-options.dto';
+import type { ProductPageOptionDto } from './dto/product-page-option.dto';
+import type { SearchProductsDto } from './dto/search-products.dto';
+import type { UpdateProductDto } from './dto/update-product.dto';
+import { ProductConflictException } from './exception/product-conflict.exception';
+import { ProductNotFoundException } from './exception/product-not-found.exception';
+import { ImageRepository } from './image.repository';
+import { ProductEntity } from './product.entity';
+import { ProductRepository } from './product.repository';
+import { UserFavoriteRepository } from './user-favorite.repository';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-const ftp = require("basic-ftp");
+const ftp = require('basic-ftp');
 
 @Injectable()
 export class ProductService {
@@ -38,9 +39,9 @@ export class ProductService {
     private readonly userService: UserService,
     private readonly categoryService: CategoryService,
     private readonly eventService: EventService,
-    private readonly targetService: TargetService
+    private readonly targetService: TargetService,
   ) {
-    this.xmlPath = __dirname + "/Full.xml";
+    this.xmlPath = __dirname + '/Full.xml';
   }
 
   async downloadXml() {
@@ -49,14 +50,14 @@ export class ProductService {
 
     try {
       await client.access({
-        protocol: "ftp",
-        host: "samosoft.am",
+        protocol: 'ftp',
+        host: 'samosoft.am',
         port: 21,
-        user: "jpit.am",
-        password: "S65%r6jg",
+        user: 'jpit.am',
+        password: 'S65%r6jg',
         secure: false,
       });
-      await client.downloadTo(fs1.createWriteStream(this.xmlPath), "Full.xml");
+      await client.downloadTo(fs1.createWriteStream(this.xmlPath), 'Full.xml');
     } catch (error) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       throw new Error(error);
@@ -68,7 +69,7 @@ export class ProductService {
   @Cron(CronExpression.EVERY_DAY_AT_11PM)
   async handleCron() {
     await this.downloadXml();
-    const file = await fs.readFile(this.xmlPath, "utf-8");
+    const file = await fs.readFile(this.xmlPath, 'utf-8');
     const newData = file.toString();
     const newData3 = newData.slice(94);
     let parsedFile;
@@ -78,7 +79,7 @@ export class ProductService {
 
     parsedFile?.map(async (product) => {
       const ftpProduct = await this.productRepository.findByCode(
-        Number(product.CODE[0])
+        Number(product.CODE[0]),
       );
 
       if (ftpProduct) {
@@ -151,39 +152,39 @@ export class ProductService {
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
   async getAll(
-    productPageOptionDto: ProductPageOptionDto
+    productPageOptionDto: ProductPageOptionDto,
   ): Promise<PageDto<ProductDto>> {
     let sortBy: string;
 
     switch (productPageOptionDto.sortBy) {
-      case "FREQUENTLY_SEARCHED":
-        sortBy = "product.views_count";
+      case 'FREQUENTLY_SEARCHED':
+        sortBy = 'product.views_count';
         break;
-      case "PRODUCTS_NEWS":
-        sortBy = "product.createdAt";
+      case 'PRODUCTS_NEWS':
+        sortBy = 'product.createdAt';
         break;
       default:
-        sortBy = "product.updatedAt";
+        sortBy = 'product.updatedAt';
         break;
     }
 
     const queryBuilder = this.productRepository
-      .createQueryBuilder("product")
+      .createQueryBuilder('product')
       .orderBy(sortBy, productPageOptionDto.order)
       .leftJoinAndSelect('product.image', 'image')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.event', 'event')
       .leftJoinAndSelect('product.target', 'target')
-      .where("product.created_at <= :date", {
+      .where('product.created_at <= :date', {
         date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       });
 
     if (productPageOptionDto.expectId) {
       if (!productPageOptionDto.categoryId) {
-        throw new UnprocessableEntityException("categoryId must be provided");
+        throw new UnprocessableEntityException('categoryId must be provided');
       }
 
-      queryBuilder.andWhere("product.id != :productId", {
+      queryBuilder.andWhere('product.id != :productId', {
         productId: productPageOptionDto.expectId,
       });
     }
@@ -195,17 +196,17 @@ export class ProductService {
           Number(productPageOptionDto.fromAge)
       ) {
         throw new UnprocessableEntityException(
-          "fromAge must be less then toAge"
+          'fromAge must be less then toAge',
         );
       }
 
-      queryBuilder.andWhere("product.to_age > :fromAge", {
+      queryBuilder.andWhere('product.to_age > :fromAge', {
         fromAge: Number(productPageOptionDto.fromAge),
       });
     }
 
     if (productPageOptionDto.toAge) {
-      queryBuilder.andWhere("product.from_age < :toAge", {
+      queryBuilder.andWhere('product.from_age < :toAge', {
         toAge: Number(productPageOptionDto.toAge),
       });
     }
@@ -217,23 +218,23 @@ export class ProductService {
           Number(productPageOptionDto.minPrice)
       ) {
         throw new UnprocessableEntityException(
-          "minPrice must be less then maxPrice"
+          'minPrice must be less then maxPrice',
         );
       }
 
-      queryBuilder.andWhere("product.price > :minPrice", {
+      queryBuilder.andWhere('product.price > :minPrice', {
         minPrice: Number(productPageOptionDto.minPrice),
       });
     }
 
     if (productPageOptionDto.maxPrice) {
-      queryBuilder.andWhere("product.price < :maxPrice", {
+      queryBuilder.andWhere('product.price < :maxPrice', {
         maxPrice: Number(productPageOptionDto.maxPrice),
       });
     }
 
     if (productPageOptionDto.categoryId) {
-      queryBuilder.andWhere("product.category_id = :categoryId", {
+      queryBuilder.andWhere('product.category_id = :categoryId', {
         categoryId: productPageOptionDto.categoryId,
       });
     }
@@ -253,23 +254,23 @@ export class ProductService {
     }
 
     if (productPageOptionDto.eventId) {
-      queryBuilder.andWhere("product.event_id in (:...eventsArray)", {
+      queryBuilder.andWhere('product.event_id in (:...eventsArray)', {
         eventsArray: productPageOptionDto.eventId,
       });
     }
 
     if (productPageOptionDto.targetId) {
-      queryBuilder.andWhere("product.target_id in (:...targetsArray)", {
+      queryBuilder.andWhere('product.target_id in (:...targetsArray)', {
         targetsArray: productPageOptionDto.targetId,
       });
     }
 
     if (productPageOptionDto.q) {
-      queryBuilder.searchByString(productPageOptionDto.q, ["product.name"]);
+      queryBuilder.searchByString(productPageOptionDto.q, ['product.name']);
     }
 
     const [products, pageMetaDto] = await queryBuilder.paginate(
-      productPageOptionDto
+      productPageOptionDto,
     );
 
     return products.toPageDto(pageMetaDto);
@@ -292,22 +293,22 @@ export class ProductService {
   }
 
   async getProducts(
-    searchProductsDto: SearchProductsDto
+    searchProductsDto: SearchProductsDto,
   ): Promise<PageDto<ProductDto>> {
     const productsQuery = this.productRepository
-      .createQueryBuilder("product")
-      .where("product.name LIKE :name", {
+      .createQueryBuilder('product')
+      .where('product.name LIKE :name', {
         name: `%${searchProductsDto.search_name}%`,
       })
-      .orWhere("product.name_ru LIKE :name_ru", {
+      .orWhere('product.name_ru LIKE :name_ru', {
         name_ru: `%${searchProductsDto.search_name}%`,
       })
-      .orWhere("product.name_en LIKE :name_en", {
+      .orWhere('product.name_en LIKE :name_en', {
         name_en: `%${searchProductsDto.search_name}%`,
       });
 
     const [products, pageMetaDto] = await productsQuery.paginate(
-      searchProductsDto
+      searchProductsDto,
     );
 
     return products.toPageDto(pageMetaDto);
@@ -316,7 +317,7 @@ export class ProductService {
   async update(
     files,
     id: string,
-    updateProductDto: UpdateProductDto
+    updateProductDto: UpdateProductDto,
   ): Promise<UpdateResult> {
     const product = await this.productRepository.findById(id);
 
@@ -326,10 +327,13 @@ export class ProductService {
 
     if (files) {
       // eslint-disable-next-line sonarjs/no-ignored-return
-      product.image.map(async (image) => {
-        await this.imageRepository.delete(image.id);
-        unlinkSync(image.name);
-      });
+      if (product.image) {
+        product.image.map(async (image) => {
+          await this.imageRepository.delete(image.id);
+          unlinkSync(image.name);
+        });
+      }
+
       await files.map(async (image) => {
         await this.imageRepository.save({
           name: image.path,
@@ -368,11 +372,16 @@ export class ProductService {
 
     if (product) {
       const images = product.image;
+
+      if (Array.isArray(images)) {
+        // eslint-disable-next-line sonarjs/no-ignored-return
+        images.map(async (image) => {
+          await this.imageRepository.delete(image.id);
+          unlinkSync(image.name);
+        });
+      }
       // eslint-disable-next-line sonarjs/no-ignored-return
-      images.map(async (image) => {
-        await this.imageRepository.delete(image.id);
-        unlinkSync(image.name);
-      });
+
       await this.productRepository.delete(id);
     }
   }
@@ -410,23 +419,21 @@ export class ProductService {
 
   async getAllFavorite(
     userId: string,
-    favoriteProductPageOptionDto: FavoriteProductPageOptionsDto
+    favoriteProductPageOptionDto: FavoriteProductPageOptionsDto,
   ): Promise<PageDto<UserFavoriteDto>> {
     const userEntity = await this.userService.getEntityById(userId);
 
     const queryBuilder = this.userFavoriteRepository
       .createQueryBuilder('userFavorite')
-      .where('userFavorite.user_id = :id', {id: userEntity.id})
+      .where('userFavorite.user_id = :id', { id: userEntity.id })
       .orderBy('userFavorite.updatedAt', favoriteProductPageOptionDto.order)
       .leftJoinAndSelect('userFavorite.product', 'product')
       .leftJoinAndSelect('product.image', 'image')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.event', 'event')
       .leftJoinAndSelect('product.target', 'target');
-
-
     const [favoriteProducts, pageMetaDto] = await queryBuilder.paginate(
-      favoriteProductPageOptionDto
+      favoriteProductPageOptionDto,
     );
 
     return favoriteProducts.toPageDto(pageMetaDto);
@@ -435,7 +442,7 @@ export class ProductService {
   async deleteUserFavorite(productId: string, userId: string): Promise<void> {
     const userFavorite = await this.userFavoriteRepository.findByIdandUserId(
       userId,
-      productId
+      productId,
     );
 
     if (userFavorite) {

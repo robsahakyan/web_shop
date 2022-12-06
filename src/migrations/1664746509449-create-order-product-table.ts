@@ -27,7 +27,7 @@ export class CreateOrderProductTable1664746509449
     await queryRunner.query(
       `ALTER TABLE "orderProduct" 
                 ADD CONSTRAINT "FK_f0d8e694108086cc52602a14f1a" FOREIGN KEY ("product_id") 
-                REFERENCES "products"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+                REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
     );
   }
 
